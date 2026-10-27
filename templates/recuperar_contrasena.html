@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="form-section">
+    <h2 class="form-title">¿Olvidaste tu contraseña?</h2>
+    <div class="form-card">
+
+        <form method="POST">
+            <label>Correo electrónico:</label>
+            <input type="email" name="email" required>
+            {% if error %}<div style="color:white">{{ error }}</div>{% endif %}
+
+            <button type="submit" class="btn blue full">Enviar enlace</button>
+        </form>
+        <div class="extra-links">
+            <a href="{{ url_for('login') }}">← Volver</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Configuración - MindGo{% endblock %}
+{% block content %}
+
+<section class="perfil-config">
+  <h1 class="perfil-config-title">Configuración</h1>
+
+  <!-- Pestañas -->
+  <div class="tabs">
+    <button class="tab active" data-tab="perfil">Editar perfil</button>
+    <button class="tab" data-tab="privacidad">Privacidad</button>
+    <button class="tab" data-tab="contrasena">Cambiar contraseña</button>
+  </div>
+
+  <!-- Contenido: PERFIL -->
+  <div class="tab-content active" id="perfil">
+    <div class="perfil-grid">
+      <!-- Columna izquierda -->
+      <div class="perfil-info">
+        <h2>Información del usuario</h2>
+
+        <!-- ✅ FORM EDITAR DATOS -->
+        <form id="editar-form" method="POST" action="{{ url_for('perfil') }}">
+          <label>Nombre de usuario</label>
+          <input type="text" name="usuario" value="{{ usuario }}" required>
+
+          <label>Correo electrónico</label>
+          <input type="email" name="email" value="{{ correo }}" required>
+
+          <label>Tipo de cuenta</label>
+          <input type="text" value="{{ rol }}" readonly>
+
+          <div class="editar-buttons">
+            <button type="submit" class="btn yellow">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Columna derecha -->
+      <div class="perfil-detalles">
+        <h2>Detalles de la cuenta</h2>
+
+        <label>Avatar</label>
+        <div class="perfil-avatar-edit">
+          <img src="{{ url_for('static', filename='avatars/' + avatar) }}" alt="Avatar" class="avatar-img">
+          <a href="{{ url_for('cambiar_avatar') }}" class="btn blue">Cambiar avatar</a>
+        </div>
+
+        <label>Lugar de trabajo</label>
+        <input type="text" value="{{ lugar_trabajo }}" readonly>
+
+        <label>Perfil verificado</label>
+        <input type="text" value="{{ 'Verificado ✅' if verificado else 'No verificado ❌' }}" readonly>
+
+        <button class="btn red">Eliminar cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido: PRIVACIDAD -->
+  <div class="tab-content" id="privacidad">
+    <div class="privacidad-card">
+      <h2>Privacidad</h2>
+      <p>Próximamente podrás gestionar configuraciones de privacidad.</p>
+    </div>
+  </div>
+
+  <!-- Contenido: CAMBIAR CONTRASEÑA -->
+  <div class="tab-content" id="contrasena">
+    <div class="editar-card card-center">
+      <h2>Cambiar contraseña</h2>
+
+      <form method="POST" action="{{ url_for('perfil') }}" id="form-contra" class="form-contra">
+        <div class="input-group">
+          <label for="actual">Contraseña actual</label>
+          <input type="password" id="actual" name="actual" placeholder="Ingresa tu contraseña actual" required>
+        </div>
+
+        <div class="input-group">
+          <label for="nueva">Nueva contraseña</label>
+          <input type="password" id="nueva" name="nueva" placeholder="Ingresa la nueva contraseña" required>
+          <div id="password-requirements"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="confirmar">Confirmar nueva contraseña</label>
+          <input type="password" id="confirmar" name="confirmar" placeholder="Repite la nueva contraseña" required>
+          <small id="mensaje-validacion" class="mensaje-validacion"></small>
+        </div>
+
+        <div class="editar-buttons">
+          <button type="submit" class="btn yellow full-width">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>
+
+<!-- JS para pestañas y validación -->
+<script>
+// ======== Pestañas ========
+const tabs = document.querySelectorAll(".tab");
+const tabContents = document.querySelectorAll(".tab-content");
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    tabContents.forEach(c => c.classList.remove("active"));
+    document.getElementById(tab.dataset.tab).classList.add("active");
+  });
+});
+
+// ======== Validación de contraseña ========
+document.addEventListener('DOMContentLoaded', function () {
+  const passwordInput = document.getElementById('nueva');
+  const feedbackContainer = document.getElementById('password-requirements');
+  const confirmar = document.getElementById('confirmar');
+  const mensaje = document.getElementById('mensaje-validacion');
+
+  const requirements = [
+    { regex: /.{8,}/, label: 'Mínimo 8 caracteres' },
+    { regex: /[A-Z]/, label: 'Al menos una mayúscula' },
+    { regex: /[a-z]/, label: 'Al menos una minúscula' },
+    { regex: /[0-9]/, label: 'Al menos un número' },
+    { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, label: 'Carácter especial' }
+  ];
+
+  function renderRequirements(password) {
+    feedbackContainer.innerHTML = '';
+    requirements.forEach(req => {
+      const isValid = req.regex.test(password);
+      const item = document.createElement('div');
+
+      const bullet = document.createElement('span');
+      bullet.className = 'bullet';
+      bullet.textContent = isValid ? '✓' : '•';
+      bullet.style.backgroundColor = isValid ? '#e0ffe0' : 'transparent';
+      bullet.style.color = isValid ? '#27ae60' : '#555';
+      bullet.style.border = '1px solid #ccc';
+
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = req.label;
+      label.style.color = isValid ? '#27ae60' : '#333';
+      if (isValid) label.style.textDecoration = 'line-through';
+
+      item.appendChild(bullet);
+      item.appendChild(label);
+      feedbackContainer.appendChild(item);
+    });
+  }
+
+  passwordInput.addEventListener('focus', function () {
+    renderRequirements(this.value);
+    feedbackContainer.classList.add('active');
+  });
+
+  passwordInput.addEventListener('blur', function () {
+    feedbackContainer.classList.remove('active');
+  });
+
+  passwordInput.addEventListener('input', function () {
+    if (feedbackContainer.classList.contains('active')) {
+      renderRequirements(this.value);
+    }
+    validarCoincidencia();
+  });
+
+  confirmar.addEventListener('input', validarCoincidencia);
+
+  function validarCoincidencia() {
+    if (confirmar.value === '') {
+      mensaje.textContent = '';
+      confirmar.style.borderColor = '#ddd';
+      return;
+    }
+    if (passwordInput.value === confirmar.value) {
+      mensaje.textContent = '✅ Coinciden';
+      mensaje.style.color = 'green';
+      confirmar.style.borderColor = '#27ae60';
+    } else {
+      mensaje.textContent = '❌ No coinciden';
+      mensaje.style.color = '#e74c3c';
+      confirmar.style.borderColor = '#e74c3c';
+    }
+  }
+});
+</script>
+
+<style>
+/* ====== Tabs ====== */
+.tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 1.5rem;
+}
+.tab {
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  color: #666;
+  transition: all 0.2s;
+  position: relative;
+}
+.tab.active {
+  color: #111;
+}
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #ff5fa2;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+/* ====== Requisitos de contraseña ====== */
+#password-requirements {
+  display: none;
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+#password-requirements.active {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+#password-requirements div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bullet {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,731 @@
+{% extends "base.html" %}
+
+{% block title %}Ranking Final - MindGo{% endblock %}
+
+{% block content %}
+<style>
+    /* ===== ESTILOS ESPECÍFICOS PARA ESTA PÁGINA ===== */
+
+    .bg-blue {
+        background-color: #4db6ac !important;
+    }
+
+    .bg-green {
+        background-color: #66bb6a !important;
+    }
+
+    .bg-pink {
+        background-color: #e94e77 !important;
+    }
+
+    .text-pink {
+        color: #e94e77 !important;
+    }
+
+    .border-pink {
+        border-color: #e94e77 !important;
+    }
+
+    /* Tarjetas de estadísticas */
+    .stat-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+    }
+
+    .stat-card .label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card i {
+        font-size: 1.5rem;
+        opacity: 0.8;
+    }
+
+    /* Pestañas */
+    .nav-tabs .nav-link {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 600;
+        padding: 8px 20px;
+        margin-right: 5px;
+        border-radius: 8px 8px 0 0 !important;
+        border: 2px solid #e94e77 !important;
+        color: #212529;
+        background-color: #fafafa;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: white !important;
+        color: #e94e77 !important;
+        font-weight: 700;
+        border-bottom: none !important;
+    }
+
+    .nav-tab-item:hover {
+        background-color: #fff;
+        transform: translateY(-1px);
+    }
+
+    /* Distribución de puntajes */
+    .distribution-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .distribution-item .label {
+        font-weight: 500;
+        width: 180px;
+    }
+
+    .progress-custom {
+        width: 100%;
+        height: 6px;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-custom .progress-bar {
+        background-color: #212529;
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    /* Top 3 estudiantes */
+    .top-student {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .medal-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        color: #666;
+    }
+
+    .top-student .name {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .top-student .points {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    /* Botón exportar */
+    .btn-pink {
+        background-color: #e94e77;
+        color: white;
+        border: none;
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 600;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(233, 78, 119, 0.3);
+        width: 100%;
+        max-width: 300px;
+        text-align: center;
+    }
+
+    .btn-pink:hover {
+        background-color: #d6446b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(233, 78, 119, 0.4);
+    }
+
+    /* Card general */
+    .card {
+        border-radius: 12px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+    }
+
+    /* Vista Estudiantes */
+    .student-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background-color: white;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .student-row:hover {
+        border-color: #e94e77;
+    }
+
+    .student-row.top {
+        border-color: #e94e77;
+        background-color: #fdf2f8;
+    }
+
+    .student-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        color: #666;
+    }
+
+    .student-info {
+        flex-grow: 1;
+        margin-left: 12px;
+    }
+
+    .student-name {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #212529;
+    }
+
+    .student-aciertos {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .student-score {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #e94e77;
+    }
+
+    @media (max-width: 768px) {
+        .stat-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .stat-card i {
+            margin-top: 0.5rem;
+        }
+
+        .btn-pink {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+    /* Ocultar vistas por defecto */
+    .view {
+        display: none;
+    }
+
+    .view.active {
+        display: block;
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- HEADER RANKING FINAL -->
+    <div class="bg-pink text-white text-center py-3 rounded-top d-flex align-items-center justify-content-center"
+        style="font-family: 'Fredoka', sans-serif; font-weight: 700; letter-spacing: 1px;">
+        <i class="bi bi-trophy me-3 fs-1"></i>
+        <span class="fs-1">RANKING FINAL</span>
+        <i class="bi bi-trophy ms-3 fs-1"></i>
+    </div>
+
+    <!-- Subtítulo -->
+    <h6 class="text-center mt-3 mb-4" style="font-family: 'Fredoka', sans-serif; font-weight: 500; color: #212529;">
+        Resultados finales del quiz
+        {% if fecha %}
+        <br><small class="text-muted">{{ fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+        {% endif %}
+    </h6>
+
+    <!-- Nombre del quiz -->
+    <div class="text-center mb-4">
+        <span class="badge bg-white text-pink px-4 py-2 rounded-pill border border-pink"
+            style="font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 1rem;">
+            {{ titulo }} - {{ ranking|length }} Participante{{ 's' if ranking|length != 1 else '' }}
+        </span>
+        <br>
+        <small class="text-muted">PIN: {{ pin }}</small>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="text-center mb-4">
+        {% if es_creador %}
+        <a href="/cuestionario?id={{ id_cuestionario }}" class="btn btn-primary me-2">
+            <i class="bi bi-pencil-square"></i> Editar cuestionario
+        </a>
+        <a href="/biblioteca" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Biblioteca
+        </a>
+        {% else %}
+        <!-- Para participantes: volver a biblioteca en sección Completado -->
+        <a href="/biblioteca#completado" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Biblioteca
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="row g-3 mb-4">
+        <!-- Estudiantes activos -->
+        <div class="col-md-4">
+            <div class="stat-card bg-pink">
+                <div>
+                    <div class="label">Estudiantes Participantes</div>
+                    <div class="value">{{ ranking|length }}</div>
+                </div>
+                <i class="bi bi-people-fill"></i>
+            </div>
+        </div>
+
+        <!-- Promedio de puntos -->
+        <div class="col-md-4">
+            <div class="stat-card bg-blue">
+                <div>
+                    <div class="label">Promedio de Puntos</div>
+                    <div class="value" id="promedioPuntos">
+                        {% if ranking|length > 0 %}
+                        {{ (ranking|sum(attribute='puntos') / ranking|length)|round|int }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </div>
+                </div>
+                <i class="bi bi-star"></i>
+            </div>
+        </div>
+
+        <!-- Precisión promedio -->
+        <div class="col-md-4">
+            <div class="stat-card bg-green">
+                <div>
+                    <div class="label">Precisión Promedio</div>
+                    <div class="value" id="precisionPromedio">
+                        {% if ranking|length > 0 %}
+                        {% set total_precision = namespace(value=0) %}
+                        {% for p in ranking %}
+                            {% if p.total_respondidas > 0 %}
+                                {% set total_precision.value = total_precision.value + (p.aciertos / p.total_respondidas * 100) %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ (total_precision.value / ranking|length)|round|int }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                </div>
+                <i class="bi bi-trophy"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas estilo mockup -->
+    <div class="d-flex align-items-center rounded-pill border border-pink"
+        style="background-color: #fdf2f8; padding: 4px; margin-bottom: 1.5rem;">
+        <a href="#" class="flex-fill text-center py-2 rounded-pill text-dark fw-bold tab-link active"
+            data-tab="vista-general"
+            style="background-color: white; font-family: 'Fredoka', sans-serif; font-weight: 600; text-decoration: none; border: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            Vista General
+        </a>
+        <a href="#" class="flex-fill text-center py-2 text-dark tab-link" data-tab="estudiantes"
+            style="font-family: 'Fredoka', sans-serif; font-weight: 600; text-decoration: none; background-color: transparent; color: #333;">
+            Estudiantes
+        </a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div id="vista-general" class="view active">
+        <div class="row g-3">
+            <!-- Distribución de puntajes -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm rounded"
+                    style="background-color: white; border: 1px solid #eee; padding: 1.5rem; height: 100%;">
+                    <h6 class="fw-bold mb-3"
+                        style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                        DISTRIBUCIÓN DE PUNTAJES
+                    </h6>
+                    <div class="mt-2" id="distribucionPuntajes">
+                        {% if ranking|length > 0 %}
+                        {% set max_puntos = ranking[0].puntos if ranking|length > 0 else 100 %}
+                        {% set rango_excelente = namespace(count=0) %}
+                        {% set rango_bueno = namespace(count=0) %}
+                        {% set rango_regular = namespace(count=0) %}
+                        {% set rango_bajo = namespace(count=0) %}
+                        
+                        {% for p in ranking %}
+                            {% set porcentaje = (p.puntos / max_puntos * 100) if max_puntos > 0 else 0 %}
+                            {% if porcentaje >= 80 %}
+                                {% set rango_excelente.count = rango_excelente.count + 1 %}
+                            {% elif porcentaje >= 60 %}
+                                {% set rango_bueno.count = rango_bueno.count + 1 %}
+                            {% elif porcentaje >= 40 %}
+                                {% set rango_regular.count = rango_regular.count + 1 %}
+                            {% else %}
+                                {% set rango_bajo.count = rango_bajo.count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- Excelente -->
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="me-2"
+                                style="font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
+                                Excelente (80-100%)
+                            </span>
+                            <div class="progress flex-grow-1 me-2"
+                                style="height: 6px; background-color: #f0f0f0; border-radius: 3px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    style="width: {% if ranking|length > 0 %}{{ (rango_excelente.count / ranking|length * 100)|round }}%{% else %}0%{% endif %}; border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 500;">{{ rango_excelente.count }}</span>
+                        </div>
+                        
+                        <!-- Bueno -->
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="me-2"
+                                style="font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
+                                Bueno (60-79%)
+                            </span>
+                            <div class="progress flex-grow-1 me-2"
+                                style="height: 6px; background-color: #f0f0f0; border-radius: 3px;">
+                                <div class="progress-bar bg-primary" role="progressbar"
+                                    style="width: {% if ranking|length > 0 %}{{ (rango_bueno.count / ranking|length * 100)|round }}%{% else %}0%{% endif %}; border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 500;">{{ rango_bueno.count }}</span>
+                        </div>
+                        
+                        <!-- Regular -->
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="me-2"
+                                style="font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
+                                Regular (40-59%)
+                            </span>
+                            <div class="progress flex-grow-1 me-2"
+                                style="height: 6px; background-color: #f0f0f0; border-radius: 3px;">
+                                <div class="progress-bar bg-warning" role="progressbar"
+                                    style="width: {% if ranking|length > 0 %}{{ (rango_regular.count / ranking|length * 100)|round }}%{% else %}0%{% endif %}; border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 500;">{{ rango_regular.count }}</span>
+                        </div>
+                        
+                        <!-- Bajo -->
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="me-2"
+                                style="font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
+                                Necesita Mejorar (0-39%)
+                            </span>
+                            <div class="progress flex-grow-1 me-2"
+                                style="height: 6px; background-color: #f0f0f0; border-radius: 3px;">
+                                <div class="progress-bar bg-danger" role="progressbar"
+                                    style="width: {% if ranking|length > 0 %}{{ (rango_bajo.count / ranking|length * 100)|round }}%{% else %}0%{% endif %}; border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 500;">{{ rango_bajo.count }}</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No hay datos de puntajes</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 3 estudiantes -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm rounded"
+                    style="background-color: white; border: 1px solid #eee; padding: 1.5rem; height: 100%;">
+                    <h6 class="fw-bold mb-3"
+                        style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                        TOP 3 ESTUDIANTES
+                    </h6>
+                    <div class="mt-2" id="top3Container">
+                        {% if ranking|length > 0 %}
+                            {% set medallas = ['🥇', '🥈', '🥉'] %}
+                            {% for participante in ranking[:3] %}
+                            <!-- {{ participante.posicion }}° lugar -->
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="me-2"
+                                    style="width: 32px; height: 32px; border-radius: 50%; background-color: white; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; font-size: 1rem; color: #666;">
+                                    {{ medallas[loop.index0] }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold"
+                                        style="font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 0.95rem; line-height: 1.3;">
+                                        {{ participante.nombre|upper }}
+                                    </div>
+                                    <small
+                                        style="color: #666; font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.85rem;">
+                                        {{ participante.puntos }} puntos - {{ participante.aciertos }}/{{ participante.total_respondidas }} aciertos
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-people" style="font-size: 3rem; color: #ddd;"></i>
+                            <p class="text-muted mt-2" style="font-family: 'Fredoka', sans-serif;">
+                                No hay participantes en este juego
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista Estudiantes -->
+    <div id="estudiantes" class="view">
+        <div class="shadow-sm rounded"
+            style="background-color: white; border: 1px solid #eee; padding: 1.5rem; height: 100%;">
+            <h6 class="fw-bold mb-3"
+                style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                LISTA DETALLADA DE ESTUDIANTES
+            </h6>
+            <div style="width: 90%; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;" id="listaEstudiantes">
+                {% if ranking|length > 0 %}
+                    {% for participante in ranking %}
+                    <div class="top-student {% if loop.index <= 3 %}highlight{% endif %}"
+                        style="display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 10px; background-color: {% if loop.index <= 3 %}#fff8e1{% else %}#f8f9fa{% endif %}; border: 1px solid {% if loop.index <= 3 %}#ffc107{% else %}#dee2e6{% endif %};">
+                        <div class="position me-3"
+                            style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.1rem; color: {% if loop.index <= 3 %}#ff6b6b{% else %}#666{% endif %};">
+                            #{{ loop.index }}
+                        </div>
+                        <div class="avatar me-3"
+                            style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1rem;">
+                            {{ participante.nombre[0]|upper }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="name" style="font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 0.95rem;">
+                                {{ participante.nombre }}
+                            </div>
+                            <div class="points" style="font-size: 0.85rem; color: #666;">
+                                {{ participante.puntos }} pts | {{ participante.aciertos }}/{{ participante.total_respondidas }} correctas
+                                {% if participante.total_respondidas > 0 %}
+                                ({{ (participante.aciertos / participante.total_respondidas * 100)|round }}%)
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if loop.index == 1 %}
+                        <div class="badge bg-warning text-dark" style="font-size: 0.9rem;">👑 Ganador</div>
+                        {% elif loop.index <= 3 %}
+                        <div class="badge bg-success" style="font-size: 0.9rem;">Top 3</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people" style="font-size: 4rem; color: #ddd;"></i>
+                    <p class="text-muted mt-3" style="font-family: 'Fredoka', sans-serif; font-size: 1.1rem;">
+                        No hay participantes para mostrar
+                    </p>
+                </div>
+                {% endif %}
+            
+        </div>
+    </div>
+
+    <!-- Vista Preguntas (placeholder) -->
+    <div id="preguntas" class="view">
+        <div class="card shadow-sm rounded" style="background-color: white; border: 1px solid #eee; padding: 1.5rem;">
+            <h6 class="fw-bold mb-3"
+                style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                LISTA DETALLADA DE PREGUNTAS
+            </h6>
+            <p class="text-center">Contenido de preguntas aún no disponible.</p>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="text-center mt-4">
+        <button class="btn btn-pink me-2" onclick="exportarPDF()" title="Exportar ranking a PDF">
+            <i class="bi bi-file-pdf"></i> EXPORTAR PDF
+        </button>
+        <button class="btn me-2" onclick="exportarCSV()" 
+            style="background: #17a2b8; color: white; border: none; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 12px 30px; font-size: 1.1rem; border-radius: 50px;" 
+            title="Exportar ranking a CSV">
+            <i class="bi bi-file-earmark-spreadsheet"></i> EXPORTAR CSV
+        </button>
+        <a href="/biblioteca?tab=completado" class="btn btn-secondary" 
+            style="background: #6c757d; color: white; border: none; font-family: 'Fredoka', sans-serif; font-weight: 600; padding: 12px 30px; font-size: 1.1rem; border-radius: 50px; text-decoration: none; display: inline-block;">
+            <i class="bi bi-arrow-left-circle"></i> VOLVER A BIBLIOTECA
+        </a>
+    </div>
+</div>
+
+<script>
+    const idCuestionario = {{ id_cuestionario if id_cuestionario else 'null' }};
+
+    // Datos del ranking para exportación
+    const rankingData = [
+        {% for p in ranking %}
+        {
+            posicion: {{ p.posicion }},
+            nombre: "{{ p.nombre }}",
+            puntos: {{ p.puntos }},
+            aciertos: {{ p.aciertos }},
+            total_respondidas: {{ p.total_respondidas }},
+            precision: {{ (p.aciertos / p.total_respondidas * 100)|round(1) if p.total_respondidas > 0 else 0 }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const tituloQuiz = "{{ titulo }}";
+    const pinQuiz = "{{ pin }}";
+    const fechaQuiz = "{{ fecha.strftime('%d/%m/%Y %H:%M') if fecha else '' }}";
+
+    // Función para exportar a PDF
+    function exportarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Título y cabecera
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RANKING FINAL', 105, 20, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text(tituloQuiz, 105, 30, { align: 'center' });
+        
+        doc.setFontSize(11);
+        doc.text('PIN: ' + pinQuiz, 105, 38, { align: 'center' });
+        doc.text('Fecha: ' + fechaQuiz, 105, 45, { align: 'center' });
+        
+        // Línea divisoria
+        doc.setLineWidth(0.5);
+        doc.line(20, 50, 190, 50);
+        
+        // Preparar datos para la tabla
+        const tableData = rankingData.map(p => [
+            p.posicion,
+            p.nombre,
+            p.puntos,
+            p.aciertos + '/' + p.total_respondidas,
+            p.precision.toFixed(1) + '%'
+        ]);
+        
+        // Generar tabla
+        doc.autoTable({
+            startY: 55,
+            head: [['Pos.', 'Nombre', 'Puntos', 'Aciertos', 'Precisión']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { 
+                fillColor: [233, 78, 119],
+                textColor: 255,
+                fontSize: 11,
+                fontStyle: 'bold'
+            },
+            styles: {
+                fontSize: 10,
+                cellPadding: 5
+            },
+            columnStyles: {
+                0: { cellWidth: 20, halign: 'center' },
+                1: { cellWidth: 80 },
+                2: { cellWidth: 30, halign: 'center' },
+                3: { cellWidth: 30, halign: 'center' },
+                4: { cellWidth: 30, halign: 'center' }
+            }
+        });
+        
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(9);
+            doc.setTextColor(150);
+            doc.text('Generado por MindGo - Página ' + i + ' de ' + pageCount, 105, 285, { align: 'center' });
+        }
+        
+        // Guardar PDF
+        const nombreArchivo = 'ranking_' + tituloQuiz.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+        doc.save(nombreArchivo);
+    }
+
+    // Función para exportar a CSV
+    function exportarCSV() {
+        // Crear encabezados
+        let csv = 'Posición,Nombre,Puntos,Aciertos,Total Respondidas,Precisión (%)\n';
+        
+        // Agregar datos
+        rankingData.forEach(p => {
+            csv += p.posicion + ',';
+            csv += '"' + p.nombre.replace(/"/g, '""') + '",'; // Escapar comillas
+            csv += p.puntos + ',';
+            csv += p.aciertos + ',';
+            csv += p.total_respondidas + ',';
+            csv += p.precision.toFixed(1) + '\n';
+        });
+        
+        // Crear blob y descargar
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const nombreArchivo = 'ranking_' + tituloQuiz.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.csv';
+        link.download = nombreArchivo;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    // Función para cambiar entre vistas
+    document.querySelectorAll('.tab-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            // Remover active de todas las pestañas
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+            // Agregar active a la actual
+            this.classList.add('active');
+
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            // Mostrar la vista correspondiente
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+</script>
+
+<!-- Librerías para exportación PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+{% endblock %}

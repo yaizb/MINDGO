@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Importar Cuestionario - MindGo{% endblock %}
+
+{% block content %}
+<div class="biblioteca-container">
+  <!-- SIDEBAR -->
+  <aside class="biblioteca-sidebar">
+    <div class="sidebar-titulo">
+      <span>Tus carpetas</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('biblioteca') }}" class="nav-item">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="biblioteca-main">
+    <div class="biblioteca-header">
+      <h1>Importar Cuestionario</h1>
+    </div>
+
+    <div class="form-card" style="max-width: 600px; margin: 0 auto; padding: 30px;">
+      <form id="formImportar" action="{{ url_for('importar_cuestionario') }}" method="POST" enctype="multipart/form-data">
+        <label for="archivo">Selecciona un archivo Excel o CSV:</label>
+        <input type="file" id="archivo" name="archivo" accept=".xlsx,.xls,.csv" required style="
+          margin-top: 10px;
+          padding: 10px;
+          border-radius: 8px;
+          background-color: #fff;
+          width: 100%;
+          border: 2px dashed #ccc;
+          cursor: pointer;
+        ">
+
+        <div id="errorArchivo" style="color: #ffb3b3; margin-top: 8px; display: none;">
+          ⚠️ Solo se permiten archivos Excel (.xlsx, .xls) o CSV.
+        </div>
+
+        <button type="submit" class="btn blue full" style="margin-top: 20px;">Cargar cuestionario</button>
+      </form>
+
+      {% if mensaje %}
+      <div style="margin-top: 15px; color: #90ee90;">{{ mensaje }}</div>
+      {% elif error %}
+      <div style="margin-top: 15px; color: #ffb3b3;">{{ error }}</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script>
+  document.getElementById("formImportar").addEventListener("submit", function(e) {
+    const archivo = document.getElementById("archivo");
+    const errorDiv = document.getElementById("errorArchivo");
+    const permitido = /\.(xlsx|xls|csv)$/i;
+
+    if (!permitido.test(archivo.value)) {
+      e.preventDefault();
+      errorDiv.style.display = "block";
+      archivo.focus();
+    } else {
+      errorDiv.style.display = "none";
+    }
+  });
+</script>
+{% endblock %}

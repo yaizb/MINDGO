@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Inicio - MindGo{% endblock %}
+
+{% block content %}
+<section class="login-box">
+  <div class="login-card">
+    <img src="{{ url_for('static', filename='img/snnopy.jpg') }}" alt="Imagen de Taylor" class="login-image">
+  </div>
+</section>
+
+<section class="categorias">
+  <div class="categorias-container">
+    <div class="categoria-card math">
+      <div class="categoria-content">
+        <h3>Matemáticas</h3>
+        <p>Resuelve desafíos con números y lógica</p>
+      </div>
+      <div class="hover-overlay">
+        <button class="btn-ver"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="categoria-card science">
+      <div class="categoria-content">
+        <h3>Ciencias</h3>
+        <p>Explora el mundo natural y sus fenómenos</p>
+      </div>
+      <div class="hover-overlay">
+        <button class="btn-ver"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="categoria-card social">
+      <div class="categoria-content">
+        <h3>Estudios sociales</h3>
+        <p>Conoce historia, cultura y sociedad</p>
+      </div>
+      <div class="hover-overlay">
+        <button class="btn-ver"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="categoria-card language">
+      <div class="categoria-content">
+        <h3>Lenguaje</h3>
+        <p>Juega con las palabras y la lectura</p>
+      </div>
+      <div class="hover-overlay">
+        <button class="btn-ver"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="categoria-card art">
+      <div class="categoria-content">
+        <h3>Arte</h3>
+        <p>Deja volar tu creatividad</p>
+      </div>
+      <div class="hover-overlay">
+        <button class="btn-ver"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="learn">
+  <div class="text">
+    <h2>¡Aprende jugando!</h2>
+    <p>Una divertida e interactiva plataforma para que profesores y estudiantes creen y respondan cuestionarios</p>
+  </div>
+  <div class="mascota">
+    <img src="{{ url_for('static', filename='img/mascota.png') }}" alt="Mascota">
+  </div>
+</section>
+
+<section class="steps">
+  <div class="left-box">
+    <i class="bi bi-arrow-right-circle-fill"></i>
+  </div>
+  <div class="right-text">
+    <h3>¿Cómo empezar a jugar?</h3>
+    <ul>
+      <li><i class="bi bi-check2-circle"></i> Paso 1</li>
+      <li><i class="bi bi-check2-circle"></i> Paso 2</li>
+      <li><i class="bi bi-check2-circle"></i> Paso 3</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

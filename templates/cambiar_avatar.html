@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Elegir Avatar - MindGo{% endblock %}
+{% block content %}
+
+<section class="avatar-section">
+  <h1 class="avatar-title">Elige tu avatar</h1>
+
+  <form method="POST" class="avatar-form">
+    <div class="avatar-container">
+
+      <!-- Cuadro de selección -->
+      <div class="avatar-box avatar-grid">
+        {% for a in avatares %}
+        <label class="avatar-option">
+          <input type="radio" name="avatar" value="{{ a }}" {% if a == avatar_actual %}checked{% endif %}>
+          <img src="{{ url_for('static', filename='avatars/' + a) }}" alt="{{ a }}">
+        </label>
+        {% endfor %}
+      </div>
+
+      <!-- Vista previa -->
+      <div class="avatar-box avatar-preview">
+        <img id="preview-img" src="{{ url_for('static', filename='avatars/' + avatar_actual) }}" alt="Avatar seleccionado">
+        <button type="submit" class="btn blue" style="margin-top:25px;">Guardar mi avatar</button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<script>
+  // Actualizar vista previa al seleccionar otro avatar
+  const radios = document.querySelectorAll('input[name="avatar"]');
+  const preview = document.getElementById('preview-img');
+  radios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      preview.src = `/static/avatars/${radio.value}`;
+    });
+  });
+</script>
+
+{% endblock %}

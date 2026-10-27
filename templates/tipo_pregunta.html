@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Tipos de Pregunta | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Gestión de Tipos de Pregunta</h1>
+
+  <div class="form-card" style="background: #fff; color: #333;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+      <h2 style="font-size: 1.3rem; font-weight: 700;">Listado de Tipos</h2>
+      <a href="{{ url_for('agregar_tipo_pregunta') }}" class="btn blue">+ Nuevo Tipo</a>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr style="background: #e43974; color: white;">
+          <th style="padding: 12px;">ID</th>
+          <th style="padding: 12px;">Nombre</th>
+          <th style="padding: 12px; text-align: center;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tipo in tipos %}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px;">{{ tipo[0] }}</td>
+          <td style="padding: 12px;">{{ tipo[1] }}</td>
+          <td style="padding: 12px; text-align: center;">
+            <a href="{{ url_for('editar_tipo_pregunta', idTipoPregunta=tipo[0]) }}" class="btn yellow" style="color: #333;">Editar</a>
+            <a href="{{ url_for('eliminar_tipo_pregunta', idTipoPregunta=tipo[0]) }}" class="btn blue btn-eliminar" style="background: #e74c3c;">Eliminar</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" style="text-align: center; padding: 20px; color: #777;">No hay tipos de pregunta registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

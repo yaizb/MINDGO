@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Inicio - MindGo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Saludo y monedas -->
+  <div class="profile-box d-flex align-items-center justify-content-between p-4 mb-4" style="background:#f8f1ff;border-radius:20px;">
+    <div>
+      <h4 style="color:#e43974;">Hola, {{ session['usuario'] }} 👋</h4>
+    </div>
+    <div class="text-end">
+        <a href="{{ url_for('biblioteca') }}"
+           class="btn yellow"
+           style="text-decoration:none;font-weight:600;padding:10px 20px;border-radius:25px;">
+          📚 Ver cuestionarios
+        </a>
+    </div>
+  </div>
+
+  <!-- Ingresar código -->
+  <div class="join-box text-center mb-5">
+      <input
+        type="text"
+        id="pinInput"
+        placeholder="Introducir un código de participación"
+        class="form-control d-inline-block"
+        style="width:60%;border-radius:25px;padding:10px 20px;border:2px solid #e43974;"
+        maxlength="6"
+      >
+      <button id="joinBtn" class="btn blue ms-2">Unir</button>
+    </div>
+
+  <!-- Actividad reciente -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Actividad reciente</h4>
+      <a href="#" class="text-decoration-none" style="color:#e43974;">Ver todo</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card" style="background:#f3f6ff;border-radius:15px;padding:10px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Flask_logo.svg" alt="Flask" style="height:50px;margin:auto;">
+          <p class="mt-2 mb-1 fw-bold text-center">Python L3 (MS) Quiz 7: Intro to Flask</p>
+          <p class="text-center text-success mb-0" style="font-size:0.9rem;">86% de precisión</p>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card" style="background:#f3f6ff;border-radius:15px;padding:10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/5968/5968332.png" alt="MySQL" style="height:50px;margin:auto;">
+          <p class="mt-2 mb-1 fw-bold text-center">MySQL</p>
+          <p class="text-center text-warning mb-0" style="font-size:0.9rem;">60% de precisión</p>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card" style="background:#f3f6ff;border-radius:15px;padding:10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2190/2190560.png" alt="English" style="height:50px;margin:auto;">
+          <p class="mt-2 mb-1 fw-bold text-center">There is - There are</p>
+          <p class="text-center text-success mb-0" style="font-size:0.9rem;">87% de precisión</p>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card" style="background:#f3f6ff;border-radius:15px;padding:10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/4149/4149676.png" alt="Should" style="height:50px;margin:auto;">
+          <p class="mt-2 mb-1 fw-bold text-center">SHOULD / SHOULDN’T</p>
+          <p class="text-center text-success mb-0" style="font-size:0.9rem;">100% de precisión</p>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card" style="background:#f3f6ff;border-radius:15px;padding:10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/4149/4149786.png" alt="Biotecnología" style="height:50px;margin:auto;">
+          <p class="mt-2 mb-1 fw-bold text-center">Biotecnología y A.T.</p>
+          <p class="text-center text-warning mb-0" style="font-size:0.9rem;">67% de precisión</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Templates -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Templates</h4>
+      <a href="#" class="text-decoration-none" style="color:#e43974;">Ver más</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#fff0f8;border-radius:15px;">
+          <p class="fw-bold mb-2">Daily Check-in</p>
+          <small>75% jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#ffe6eb;border-radius:15px;">
+          <p class="fw-bold mb-2">Gratitude Lesson</p>
+          <small>84% jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e3f6ff;border-radius:15px;">
+          <p class="fw-bold mb-2">Math 6th Grade</p>
+          <small>15% jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e6f8f2;border-radius:15px;">
+          <p class="fw-bold mb-2">Science: 3rd Grade</p>
+          <small>37% jugados</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Matemáticas -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Matemáticas</h4>
+      <a href="#" class="text-decoration-none" style="color:#e43974;">Ver más</a>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#fff9d6;border-radius:15px;">
+          <p class="fw-bold mb-2">Multiplicaciones, adiciones y...</p>
+          <small>35k jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e3f6ff;border-radius:15px;">
+          <p class="fw-bold mb-2">Operations with Decimals</p>
+          <small>59 jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#f6f1ff;border-radius:15px;">
+          <p class="fw-bold mb-2">Identidades trigonométricas</p>
+          <small>51 jugados</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inglés -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Inglés y Artes del Lenguaje</h4>
+      <a href="#" class="text-decoration-none" style="color:#e43974;">Ver más</a>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#fff0f8;border-radius:15px;">
+          <p class="fw-bold mb-2">CAN / CAN’T</p>
+          <small>27% jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e6f8f2;border-radius:15px;">
+          <p class="fw-bold mb-2">Indefinite Pronouns</p>
+          <small>73 jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e3f6ff;border-radius:15px;">
+          <p class="fw-bold mb-2">Past Simple</p>
+          <small>29 jugados</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estudios Sociales -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Estudios sociales</h4>
+      <a href="#" class="text-decoration-none" style="color:#e43974;">Ver más</a>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#fff9d6;border-radius:15px;">
+          <p class="fw-bold mb-2">Globalisation</p>
+          <small>32 diapositivas</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e6f8f2;border-radius:15px;">
+          <p class="fw-bold mb-2">Mapa Político del Perú</p>
+          <small>149 jugados</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center p-3" style="background:#e3f6ff;border-radius:15px;">
+          <p class="fw-bold mb-2">South Africa</p>
+          <small>662 jugados</small>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const pinInput = document.getElementById('pinInput');
+    const joinBtn = document.getElementById('joinBtn');
+
+    if (joinBtn && pinInput) {
+        joinBtn.addEventListener('click', async () => {
+            const pin = pinInput.value.trim().replace(/\s/g, '');
+            if (!pin || !/^\d{6}$/.test(pin)) {
+                alert('PIN inválido');
+                return;
+            }
+
+            const res = await fetch(`/api/config_sala?pin=${pin}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.error || 'Sala no encontrada');
+                return;
+            }
+
+            let url = `/salaEspera?pin=${pin}&modo=${data.modo}`;
+            if (data.modo === 'grupal' && data.grupos && data.maxIntegrantes) {
+                url += `&grupos=${data.grupos}&maxIntegrantes=${data.maxIntegrantes}`;
+            }
+
+            window.location.href = url;
+        });
+
+        pinInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinBtn.click();
+        });
+    }
+});
+</script>
+{% endblock %}

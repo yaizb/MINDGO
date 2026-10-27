@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding: 50px;">
+    <h2 class="form-title">✅ Listo</h2>
+    <p>{{ mensaje }}</p>
+    <a href="{{ url_for('login') }}" class="btn blue">Volver al inicio de sesión</a>
+</div>
+{% endblock %}

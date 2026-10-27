@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar Rol | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Agregar Rol</h1>
+
+  <div class="form-card">
+    <form action="{{ url_for('guardar_rol') }}" method="post" class="form-crud">
+      <label for="nombre">Nombre del Rol:</label>
+      <input type="text" id="nombre" name="nombre" placeholder="Ejemplo: Administrador" required>
+
+      <button type="submit" class="btn full yellow">Guardar</button>
+      <a href="{{ url_for('listar_roles') }}" class="btn full white" style="margin-top: 10px;">Cancelar</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

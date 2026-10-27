@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Lugares de Trabajo | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Gestión de Lugares de Trabajo</h1>
+
+  <div class="form-card" style="background: #fff; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+      <h2 style="font-size: 1.3rem; font-weight: 700;">Listado de Lugares</h2>
+      <a href="{{ url_for('agregar_lugar_trabajo') }}" class="btn blue">+ Nuevo Lugar</a>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="background: #e43974; color: white;">
+            <th style="padding: 12px;">ID</th>
+            <th style="padding: 12px;">Nombre</th>
+            <th style="padding: 12px;">Dominio</th>
+            <th style="padding: 12px; text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lugar in lugares %}
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px;">{{ lugar[0] }}</td>
+            <td style="padding: 12px;">{{ lugar[1] }}</td>
+            <td style="padding: 12px;">{{ lugar[2] }}</td>
+            <td style="padding: 12px; text-align: center;">
+              <a href="{{ url_for('editar_lugar_trabajo', idLugar=lugar[0]) }}" class="btn yellow" style="color: #333;">Editar</a>
+              <a href="{{ url_for('eliminar_lugar_trabajo', idLugar=lugar[0]) }}" class="btn blue btn-eliminar" style="background: #e74c3c;">Eliminar</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 20px; color: #777;">No hay lugares registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

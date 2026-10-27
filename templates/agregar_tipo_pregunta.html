@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar Tipo de Pregunta | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Agregar Tipo de Pregunta</h1>
+
+  <div class="form-card">
+    <form action="{{ url_for('guardar_tipo_pregunta') }}" method="post" class="form-crud>
+      <label for="nombreTipoPregunta">Nombre del Tipo:</label>
+      <input type="text" id="nombreTipoPregunta" name="nombreTipoPregunta" placeholder="Ejemplo: Abierta" required>
+
+      <button type="submit" class="btn full yellow">Guardar</button>
+      <a href="{{ url_for('listar_tipos_pregunta') }}" class="btn full white" style="margin-top: 10px;">Cancelar</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

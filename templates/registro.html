@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Registro de usuario - nombrePagina{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+
+<style>
+  /* --- REQUERIMIENTOS DE CONTRASEÑA --- */
+  #password-requirements {
+    display: none;
+    margin-top: 15px;
+    font-size: 0.92em;
+  }
+
+  #password-requirements.active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-width: 500px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: transparent;
+  }
+
+  #password-requirements div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+
+  #password-requirements span.bullet {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  #password-requirements span.label {
+    font-size: 0.95em;
+  }
+
+  /* --- SELECT --- */
+  select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-family: "Fredoka", sans-serif;
+    font-size: 1rem;
+    background-color: #fff;
+  }
+
+  select:focus {
+    outline: 2px solid #4bc0de;
+  }
+</style>
+
+<section class="form-section">
+  <h2 class="form-title">Registro de usuario</h2>
+  <div class="form-card">
+    <h3 class="form-subtitle">Crea tu cuenta</h3>
+
+    <form id="registro-form" action="{{ url_for('registro') }}" method="POST">
+      <label for="nombres">Nombres:</label>
+      <input type="text" id="nombres" name="nombres" value="{{ nombres or '' }}" required maxlength="20">
+
+      <label for="apellidos">Apellidos:</label>
+      <input type="text" id="apellidos" name="apellidos" value="{{ apellidos or '' }}" required maxlength="255">
+
+      <label for="email">Correo electrónico:</label>
+      <input type="email" id="email" name="email" value="{{ email or '' }}" required maxlength="255">
+      <div id="email-error" class="error-hint" style="display: none; color: white; font-size: 0.9em; margin-top: 6px;">
+        El correo debe pertenecer al dominio de una universidad
+      </div>
+
+      <!-- 🔹 Nuevo combo de Rol -->
+      <label for="rol">Tipo de usuario:</label>
+      <select id="rol" name="rol" required>
+        <option value="10" selected>Alumno</option>
+        <option value="11">Profesor</option>
+      </select>
+
+      <label for="contrasena">Contraseña:</label>
+      <input type="password" id="contrasena" name="contrasena" required maxlength="255">
+      <div id="password-requirements"></div>
+
+      {% if error %}
+      <div class="error-message" style="color: white; margin-bottom: 15px;">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn blue full">Registrarme</button>
+
+      <div class="extra-links">
+        <a href="{{ url_for('login') }}">¿Ya tienes cuenta? Inicia sesión</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  // === Validación de contraseña ===
+  document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('contrasena');
+    const feedbackContainer = document.getElementById('password-requirements');
+    if (!passwordInput || !feedbackContainer) return;
+
+    const requirements = [
+      { regex: /.{8,}/, label: 'Mínimo 8 caracteres' },
+      { regex: /[A-Z]/, label: 'Al menos una mayúscula' },
+      { regex: /[a-z]/, label: 'Al menos una minúscula' },
+      { regex: /[0-9]/, label: 'Al menos un número' },
+      { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, label: 'Carácter especial' }
+    ];
+
+    function renderRequirements(password) {
+      feedbackContainer.innerHTML = '';
+      requirements.forEach(req => {
+        const isValid = req.regex.test(password);
+        const item = document.createElement('div');
+        const bullet = document.createElement('span');
+        bullet.className = 'bullet';
+        bullet.textContent = isValid ? '✓' : '•';
+        bullet.style.backgroundColor = isValid ? 'rgba(255,255,255,0.2)' : 'transparent';
+        bullet.style.color = 'white';
+        bullet.style.border = '1px solid rgba(255,255,255,0.3)';
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = req.label;
+        label.style.color = 'white';
+        if (isValid) {
+          label.style.textDecoration = 'line-through';
+          label.style.textDecorationColor = 'white';
+        }
+        item.appendChild(bullet);
+        item.appendChild(label);
+        feedbackContainer.appendChild(item);
+      });
+    }
+
+    passwordInput.addEventListener('focus', function () {
+      renderRequirements(this.value);
+      feedbackContainer.classList.add('active');
+    });
+    passwordInput.addEventListener('blur', function () {
+      feedbackContainer.classList.remove('active');
+    });
+    passwordInput.addEventListener('input', function () {
+      if (feedbackContainer.classList.contains('active')) renderRequirements(this.value);
+    });
+  });
+
+  // === Validación dominio USAT ===
+  const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('email-error');
+  if (emailInput && emailError) {
+    function validateEmailDomain() {
+      const email = emailInput.value.trim();
+      const usatPeRegex = /^[^@]+@usat(\.[^@]+)*\.pe$/i;
+      if (email && !usatPeRegex.test(email)) {
+        emailError.style.display = 'block';
+      } else {
+        emailError.style.display = 'none';
+      }
+    }
+    emailInput.addEventListener('input', validateEmailDomain);
+    emailInput.addEventListener('blur', validateEmailDomain);
+    const form = document.getElementById('registro-form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        validateEmailDomain();
+        if (emailError.style.display === 'block') {
+          e.preventDefault();
+          emailInput.focus();
+        }
+      });
+    }
+  }
+</script>
+
+{% endblock %}

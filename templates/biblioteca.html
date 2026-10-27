@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Biblioteca - MindGo{% endblock %}
+
+{% block content %}
+
+<div class="biblioteca-container">
+  <!-- SIDEBAR -->
+  <aside class="biblioteca-sidebar">
+    <div class="sidebar-titulo">
+      <span>Tus carpetas</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item" data-seccion="favoritos">
+        <i class="bi bi-heart-fill"></i> Favoritos
+      </a>
+
+      <!-- Cuestionarios: vista por defecto -->
+      <a href="#" class="nav-item active" data-seccion="cuestionarios">
+        <i class="bi bi-journal-text"></i> Cuestionarios
+      </a>
+
+      <!-- NUEVO: Importar (solo HTML) -->
+      <a href="#" class="nav-item" data-seccion="importar">
+        <i class="bi bi-file-earmark-arrow-up"></i> Importar
+      </a>
+
+      <a href="#" class="nav-item" data-seccion="completado">
+        <i class="bi bi-check-circle"></i> Completado
+      </a>
+      <a href="#" class="nav-item" data-seccion="papelera">
+        <i class="bi bi-trash"></i> Papelera
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="biblioteca-main">
+    <div class="biblioteca-header">
+      <h1>Biblioteca</h1>
+    </div>
+
+    <!-- ====== PANEL CUESTIONARIOS (igual que antes) ====== -->
+    <div class="seccion-cuestionarios" data-seccion-panel="cuestionarios">
+      <h2 class="seccion-titulo">Cuestionarios</h2>
+      <div class="cuestionarios-grid" id="cuestionariosGrid">
+        <!-- Los cuestionarios se cargarán dinámicamente aquí -->
+      </div>
+    </div>
+
+    <!-- ====== PANEL IMPORTAR (NUEVO, empieza oculto) ====== -->
+    <div class="seccion-importar" data-seccion-panel="importar" style="display:none;">
+      <h2 class="seccion-titulo">Importar preguntas desde Excel/CSV</h2>
+
+      <form id="formImportar" action="{{ url_for('importar_simple') }}" method="POST" enctype="multipart/form-data" class="import-form">
+        <input type="hidden" name="idUsuario" value="{{ session['idUsuario'] }}">
+
+        <div class="form-row">
+          <label for="idCuestionario">Agregar a cuestionario (opcional, ID):</label>
+          <input type="number" id="idCuestionario" name="idCuestionario" placeholder="Ej: 12">
+        </div>
+
+        <div class="form-row">
+          <label for="tituloSiCrea">Título si crea uno nuevo (opcional):</label>
+          <input type="text" id="tituloSiCrea" name="tituloSiCrea" placeholder="Mi cuestionario importado">
+        </div>
+
+        <div class="form-row">
+          <label for="archivo">Archivo (.xlsx, .xls o .csv):</label>
+          <input type="file" id="archivo" name="archivo" accept=".xlsx,.xls,.csv" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Importar</button>
+          <a class="btn btn-link" href="{{ url_for('plantilla_simple') }}"><i class="bi bi-download"></i> Descargar plantilla</a>
+          <button type="button" id="btnImportarAjax" class="btn btn-outline"><i class="bi bi-cloud-upload"></i> Importar (AJAX)</button>
+        </div>
+
+        <div id="importStatus" class="import-status" style="display:none;"></div>
+      </form>
+    </div>
+
+    <!-- BOTÓN FLOTANTE PARA CREAR CUESTIONARIO -->
+    <a href="{{ url_for('cuestionario') }}" class="btn-flotante" title="Crear nuevo cuestionario">
+      <i class="bi bi-plus-lg"></i>
+    </a>
+
+    <style>
+      .btn-flotante {
+        position: fixed; bottom: 30px; right: 30px; background-color: #e43974; color: #fff;
+        font-size: 1.8rem; width: 60px; height: 60px; border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25); transition: all 0.3s ease;
+        z-index: 1000; text-decoration: none;
+      }
+      .btn-flotante:hover { background-color: #f06196; transform: scale(1.1); }
+
+      /* estilos mínimos del importador para no romper tu UI */
+      .import-form { background:#fff; border:1px solid #eee; border-radius:12px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+      .import-form .form-row { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+      .import-form .form-row label { min-width: 260px; font-weight:600; }
+      .import-form .form-row input[type="text"],
+      .import-form .form-row input[type="number"],
+      .import-form .form-row input[type="file"] { flex:1; }
+      .form-actions { display:flex; gap:12px; align-items:center; margin-top:8px; }
+      .btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:10px; border:1px solid transparent; cursor:pointer; text-decoration:none; }
+      .btn-primary { background:#e43974; color:#fff; } .btn-primary:hover { background:#f06196; }
+      .btn-link { color:#e43974; } .btn-link:hover { text-decoration:underline; }
+      .btn-outline { background:#fff; border-color:#e43974; color:#e43974; } .btn-outline:hover { background:#ffe7f0; }
+      .nav-item.active { background:#ffe7f0; border-radius:10px; }
+      .import-status { margin-top:10px; padding:10px; border-radius:8px; background:#f9f9f9; font-size:0.95rem; }
+    </style>
+  </main>
+</div>
+
+<!-- ✅ MODAL (tu modal original) -->
+<div id="modalModoJuego" style="
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; font-family:'Fredoka', sans-serif; box-shadow:0 5px 20px rgba(0,0,0,0.3);">
+    <h3 style="margin-top:0; color:#e94e77;">¿Cómo se jugará el cuestionario?</h3>
+    <div style="margin-bottom:20px;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="modoJuego" value="individual" checked> Individual</label>
+      <label><input type="radio" name="modoJuego" value="grupal"> Grupal</label>
+    </div>
+    <div id="opcionesGrupal" style="display:none; padding:15px; background:#f9f9f9; border-radius:10px;">
+      <div style="margin-bottom:12px;"><label>Número de grupos:</label><input type="number" id="numGrupos" min="2" max="20" value="4" style="width:100%; padding:8px; margin-top:5px;"></div>
+      <div><label>Máximo de integrantes por grupo:</label><input type="number" id="maxIntegrantes" min="2" max="10" value="5" style="width:100%; padding:8px; margin-top:5px;"></div>
+    </div>
+    <div style="text-align:right; margin-top:20px;">
+      <button onclick="cerrarModalModoJuego()" style="background:#ccc; border:none; padding:10px 20px; border-radius:25px; margin-right:10px; cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarModoJuego()" style="background:#e94e77; color:white; border:none; padding:10px 20px; border-radius:25px; cursor:pointer;">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tu JS original -->
+<script src="{{ url_for('static', filename='js/biblioteca.js') }}"></script>
+
+<!-- Toggle mínimo para que Importar muestre su DIV (no interfiere con lo demás) -->
+<script>
+  (function () {
+    const links = document.querySelectorAll('.sidebar-nav .nav-item');
+    const panels = document.querySelectorAll('[data-seccion-panel]');
+    function mostrar(seccion) {
+      panels.forEach(p => p.style.display = (p.dataset.seccionPanel === seccion) ? '' : 'none');
+      links.forEach(a => a.classList.toggle('active', a.dataset.seccion === seccion));
+    }
+    links.forEach(a => {
+      a.addEventListener('click', (e) => {
+        const sec = a.dataset.seccion;
+        if (sec === 'cuestionarios' || sec === 'importar' || sec === 'completado') {
+          e.preventDefault();
+          mostrar(sec);
+        }
+      });
+    });
+    
+    // Detectar si viene desde ranking con hash #completado
+    if (window.location.hash === '#completado') {
+      mostrar('completado');
+    } else {
+      // Estado inicial
+      mostrar('cuestionarios');
+    }
+
+    // (Opcional) envío AJAX del importador
+    const btnAjax = document.getElementById('btnImportarAjax');
+    const form = document.getElementById('formImportar');
+    const statusBox = document.getElementById('importStatus');
+    if (btnAjax && form && statusBox) {
+      btnAjax.addEventListener('click', async function () {
+        const archivo = document.getElementById('archivo').files[0];
+        statusBox.style.display = 'block';
+        if (!archivo) { statusBox.textContent = 'Selecciona un archivo antes de importar.'; return; }
+        statusBox.textContent = 'Importando...';
+        try {
+          const data = new FormData(form);
+          const resp = await fetch('{{ url_for("importar_simple") }}', { method: 'POST', body: data, headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+          const json = await resp.json();
+          statusBox.textContent = (resp.ok && json.estado === 'ok')
+            ? `Importación OK. Preguntas: ${json.preguntas || 0}, Respuestas: ${json.respuestas || 0}.`
+            : (json.mensaje || 'Error durante la importación.');
+        } catch {
+          statusBox.textContent = 'Error de red o servidor.';
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

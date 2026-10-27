@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Roles | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Gestión de Roles</h1>
+
+
+
+  <div class="form-card" style="background: #fff; color: #333;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+      <h2 style="font-size: 1.3rem; font-weight: 700;">Listado de Roles</h2>
+      <a href="{{ url_for('agregar_rol') }}" class="btn blue">+ Nuevo Rol</a>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr style="background: #e43974; color: white;">
+          <th style="padding: 12px; text-align: left;">ID</th>
+          <th style="padding: 12px; text-align: left;">Nombre</th>
+          <th style="padding: 12px; text-align: center;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rol in roles %}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px;">{{ rol[0] }}</td>
+          <td style="padding: 12px;">{{ rol[1] }}</td>
+          <td style="padding: 12px; text-align: center;">
+            <a href="{{ url_for('editar_rol', idRol=rol[0]) }}" class="btn yellow" style="color: #333;">Editar</a>
+            <a href="{{ url_for('eliminar_rol', idRol=rol[0]) }}" class="btn blue btn-eliminar" style="background: #e74c3c;">Eliminar</a>
+
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" style="text-align: center; padding: 20px; color: #777;">No hay roles registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

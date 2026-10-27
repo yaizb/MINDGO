@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Inicio de sesión | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h2 class="form-title">Inicio de sesión</h2>
+  <div class="form-card">
+    <h3 class="form-subtitle">Ingresa tus credenciales</h3>
+    <form action="{{ url_for('ingresar_usuario') }}" method="POST">
+      <label for="usuario">Email del usuario:</label>
+      <input type="text" id="usuario" name="email" required>
+
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" name="contrasena" required>
+
+      <button type="submit" class="btn blue full">Ingresar</button>
+
+      <div class="extra-links">
+        <a href="{{ url_for('recuperar_contrasena') }}">¿Olvidaste tu contraseña?</a>
+        <a href="{{ url_for('registro') }}">¿No tienes cuenta? Regístrate</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

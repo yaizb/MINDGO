@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar Lugar de Trabajo | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Agregar Lugar de Trabajo</h1>
+
+  <div class="form-card">
+    <form action="{{ url_for('guardar_lugar_trabajo') }}" method="post" class="form-crud">
+      <label for="nombreLugar">Nombre del Lugar:</label>
+      <input type="text" id="nombreLugar" name="nombreLugar" placeholder="Ejemplo: Oficina Central" required>
+
+      <label for="dominio" style="margin-top: 10px;">Dominio:</label>
+      <input type="text" id="dominio" name="dominio" placeholder="Ejemplo: oficina.com" required>
+
+      <button type="submit" class="btn full yellow" style="margin-top: 15px;">Guardar</button>
+      <a href="{{ url_for('listar_lugares_trabajo') }}" class="btn full white" style="margin-top: 10px;">Cancelar</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

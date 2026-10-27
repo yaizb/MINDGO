@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+    background: #fff;
+}
+
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #D23069;
+    /* Fucsia */
+    height: 100vh;
+    color: white;
+    padding: 20px;
+}
+
+.error-text {
+    flex: 1;
+    text-align: center;
+}
+
+.error-text h1 {
+    font-size: 3rem;
+    margin: 0;
+    font-weight: 900;
+}
+
+.error-text p {
+    margin-top: 10px;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.error-img {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.error-img img {
+    max-width: 300px;
+    height: auto;
+}
+
+.img{
+    width: 300px;
+}

@@ -1,0 +1,869 @@
+{% block content %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+
+<!-- Audio oculto -->
+<audio id="mainAudio" src="{{ url_for('static', filename='music/Mindgo.mp3') }}" loop></audio>
+
+<script>
+    const currentUser = {
+        nombre: "{{ session.usuario }}",
+        avatar: "{{ session.avatar }}"
+    };
+
+    // Variables del servidor
+    const esCreador = {{ 'true' if es_creador else 'false' }};
+    const pinServidor = "{{ pin if pin else '' }}";
+    const idCuestionario = "{{ id_cuestionario if id_cuestionario else '' }}";
+    const cuestionarioTitulo = "{{ cuestionario_titulo if cuestionario_titulo else '' }}";
+</script>
+
+<!-- Encabezado rosa -->
+<div class="header-bg">
+    <h5 id="headerTitle">
+        {% if es_creador %}
+            Sala de espera: {{ cuestionario_titulo }}
+        {% else %}
+            Esperando en la sala: {{ cuestionario_titulo }}
+        {% endif %}
+    </h5>
+    <div class="pin-box" id="pinDisplay">
+        {% if pin %}
+            {{ pin[:3] }} {{ pin[3:] }}
+        {% else %}
+            ------
+        {% endif %}
+    </div>
+    {% if es_creador %}
+    <p>Comparte este PIN o escanea el código QR:</p>
+    <div class="qr-container">
+        <div id="qrCode"></div>
+    </div>
+    {% endif %}
+    <div>
+        {% if es_creador %}
+        <div class="text-center">
+        <button id="startBtn" class="btn btn-start">
+            Empezar
+        </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Botón separado: Bloquear/Desbloquear sala (solo creador) -->
+    {% if es_creador %}
+    <div class="text-center">
+        <button id="lockBtn" class="btn btn-toggle-lock">
+            <i id="lockIcon" class="bi bi-unlock-fill"></i> Sala libre
+        </button>
+    </div>
+    {% endif %}
+
+    <div id="modoInfo" class="modo-info mt-3"></div>
+
+    {% if not es_creador %}
+        <div class="text-center mt-3">
+            <button id="salirBtn" class="btn btn-danger btn-salir">
+                <i class="bi bi-box-arrow-left me-2"></i> Salir de la sala
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Cuadrícula de usuarios -->
+<div class="container mt-4">
+    <div class="users-grid" id="usersGrid">
+
+    </div>
+</div>
+
+<!-- Menú flotante de configuración -->
+<div class="config-menu" id="configMenu">
+    <button id="eliminarBtn"><i class="bi bi-person-x me-2"></i>Eliminar participante</button>
+</div>
+
+<!-- Barra inferior fija -->
+<div class="footer-bar">
+    <div class="user-count">
+        <i class="bi bi-people-fill"></i> <span id="userCount">0</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="icon-btn" id="volumeBtn" title="Mute/Unmute">
+            <i class="bi bi-volume-up-fill" id="volumeIcon"></i>
+        </button>
+        {% if es_creador %}
+        <button class="icon-btn" id="configBtn" title="Configuración">
+            <i class="bi bi-gear-fill"></i>
+        </button>
+        {% endif %}
+        <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa">
+            <i class="bi bi-arrows-fullscreen"></i>
+        </button>
+    </div>
+</div>
+
+<div id="mensajeModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modalTitulo">¡Atención!</h3>
+    <p id="modalMensaje">Este es un mensaje de ejemplo.</p>
+    <div class="modal-buttons">
+      <button id="modalCerrar" class="btn blue">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="confirmTitulo">Confirmar</h3>
+    <p id="confirmMensaje">¿Estás seguro?</p>
+    <div class="modal-buttons">
+      <button id="confirmCancelar" class="btn white">Cancelar</button>
+      <button id="confirmAceptar" class="btn blue">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Función para obtener el PIN de la URL ---
+    function getPinFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('pin');
+    }
+
+    // --- Variables de estado ---
+    let salaAbierta = true;
+    let participantes = [];
+    let modoEliminacion = false;
+    let pinSinEspacios = pinServidor ? pinServidor.replace(/\s/g, '') : null;
+    let participanteId = null;
+
+    // --- Elementos del DOM ---
+    const volumeBtn = document.getElementById('volumeBtn');
+    const volumeIcon = document.getElementById('volumeIcon');
+    const configBtn = document.getElementById('configBtn');
+    const configMenu = document.getElementById('configMenu');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const mainAudio = document.getElementById('mainAudio');
+    const lockBtn = document.getElementById('lockBtn');
+    const lockIcon = document.getElementById('lockIcon');
+    const usersGrid = document.getElementById('usersGrid');
+    const pinDisplay = document.getElementById('pinDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const headerText = document.querySelector('.header-bg h5');
+    const urlParams = getQueryParams();
+    const modoJuego = urlParams.modo; // 'individual' o 'grupal'
+    const numGrupos = urlParams.grupos;
+    const maxPorGrupo = urlParams.maxIntegrantes;
+
+    const eliminarBtn = document.getElementById('eliminarBtn');
+    if (eliminarBtn) {
+        eliminarBtn.addEventListener('click', () => {
+            modoEliminacion = !modoEliminacion;
+            configMenu.classList.remove('show');
+            renderParticipants();
+
+            if (modoEliminacion) {
+                eliminarBtn.innerHTML = '<i class="bi bi-person-x me-2"></i>Cancelar eliminación';
+            } else {
+                eliminarBtn.innerHTML = '<i class="bi bi-person-x me-2"></i>Eliminar participante';
+            }
+        });
+    }
+
+    function getQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            pin: params.get('pin'),
+            modo: params.get('modo') || 'individual', // por defecto
+            grupos: parseInt(params.get('grupos')) || null,
+            maxIntegrantes: parseInt(params.get('maxIntegrantes')) || null
+        };
+    }
+
+    // --- Funciones auxiliares ---
+    function generatePIN() {
+        const num = Math.floor(100000 + Math.random() * 900000).toString();
+        return num.substring(0, 3) + ' ' + num.substring(3);
+    }
+
+    function generarQR(pinSinEspacios) {
+        const qrContainer = document.getElementById('qrCode');
+        if (!qrContainer) return;
+        qrContainer.innerHTML = '';
+
+        const urlParams = getQueryParams();
+        const modoJuego = urlParams.modo;
+        const numGrupos = urlParams.grupos;
+        const maxPorGrupo = urlParams.maxIntegrantes;
+
+        const url = `https://mindgo.pythonanywhere.com/salaEspera?pin=${pinSinEspacios}&modo=${modoJuego}&grupos=${numGrupos}&maxIntegrantes=${maxPorGrupo}`;
+
+        const qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        qrContainer.innerHTML = qr.createImgTag(4, 8);
+    }
+
+    function renderParticipants() {
+        usersGrid.innerHTML = '';
+        participantes.forEach((p, index) => {
+            const item = document.createElement('div');
+            item.className = 'avatar-item';
+            item.innerHTML = `
+                <div class="avatar-img">
+                    <img src="{{ url_for('static', filename='avatars/') }}${p.avatar}"
+                         alt="${p.name}"
+                         onerror="this.src='{{ url_for('static', filename='avatars/oveja.png') }}'">
+                </div>
+                <div class="avatar-name">${p.name}</div>
+            `;
+
+            // ✅ Solo añadir botón si está activo el modo eliminación
+            if (modoEliminacion) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-sm btn-danger mt-1';
+                delBtn.textContent = '×';
+                delBtn.onclick = () => {
+                    fetch('/eliminar_participante', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pin: pinSinEspacios,
+                            nombre: p.name,
+                            avatar: p.avatar
+                        })
+                    }).then(() => cargarParticipantes());
+                };
+                item.appendChild(delBtn);
+            }
+
+            usersGrid.appendChild(item);
+        });
+        document.getElementById('userCount').textContent = participantes.length;
+    }
+
+    function addDeleteButton(item, index) {
+        const overlay = document.createElement('div');
+        overlay.className = 'eliminar-overlay';
+        overlay.innerHTML = '&times;';
+        overlay.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+        `;
+        const parent = item.querySelector('.avatar-img').parentElement;
+        parent.style.position = 'relative';
+        parent.appendChild(overlay);
+        overlay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const participante = participantes[index];
+
+            // Enviar al servidor para eliminarlo
+            fetch('/eliminar_participante', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pin: pinSinEspacios,   // Solo disponible en modo anfitrión
+                    nombre: participante.name,
+                    avatar: participante.avatar
+                })
+            })
+            .then(() => {
+                // Solo si el servidor confirma, lo quitamos del frontend
+                participantes.splice(index, 1);
+                renderParticipants();
+            })
+            .catch(err => {
+                console.warn("Error al eliminar participante:", err);
+                mostrarMensaje("Error", "Error al eliminar participante:");
+            });
+        });
+    }
+
+    function toggleModoEliminacion() {
+        modoEliminacion = !modoEliminacion;
+        configMenu.classList.remove('show');
+        renderParticipants();
+    }
+
+
+    function updateVolumeIcon() {
+        volumeIcon.className = mainAudio.muted
+            ? 'bi bi-volume-mute-fill'
+            : 'bi bi-volume-up-fill';
+    }
+
+    // --- Inicialización según modo ---
+    console.log('esCreador:', esCreador, 'pinServidor:', pinServidor);
+
+    if (!esCreador) {
+        // === MODO PARTICIPANTE (ALUMNO) ===
+        const formattedPin = pinServidor.replace(/(\d{3})(\d{3})/, '$1 $2');
+        const nombreCompleto = `${currentUser.nombre}`.trim();
+        const avatar = currentUser.avatar;
+
+        if (pinDisplay) pinDisplay.textContent = formattedPin;
+        if (headerText) headerText.textContent = `Esperando en la sala: ${cuestionarioTitulo}`;
+
+        function mostrarSelectorDeGrupo() {
+            const gruposContainer = document.createElement('div');
+            gruposContainer.id = 'selectorGrupos';
+            gruposContainer.innerHTML = `
+                <h5>Selecciona un grupo:</h5>
+                <div class="d-flex gap-2 flex-wrap justify-content-center" id="botonesGrupos"></div>
+            `;
+            document.querySelector('.header-bg').appendChild(gruposContainer);
+
+            // Obtener número de grupos desde URL
+            const numGrupos = parseInt(new URLSearchParams(window.location.search).get('grupos')) || 4;
+
+            const botonesGrupos = document.getElementById('botonesGrupos');
+            for (let i = 1; i <= numGrupos; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary btn-sm';
+                btn.textContent = `Grupo ${i}`;
+                btn.onclick = () => {
+                    fetch('/seleccionar_grupo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pin: pinFromUrl,
+                            participante_id: participanteId,
+                            grupo: i
+                        })
+                    }).then(() => {
+                        mostrarMensaje("Notificación", `Te uniste al Grupo ${i}`);
+                        gruposContainer.remove();
+                        // Opcional: actualizar visualización
+                    });
+                };
+                botonesGrupos.appendChild(btn);
+            }
+        }
+
+        // Enviar al servidor que se unió
+        fetch('/unirse_sala', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin: pinSinEspacios, nombre: nombreCompleto, avatar: avatar })
+        })
+        .then(res => {
+            if (res.status === 403) {
+                window.location.href = "/errorSistema";
+            } else if (!res.ok) {
+                throw new Error("Error al unirse");
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.participante_id) {
+                participanteId = data.participante_id; // ← guardar ID
+
+                 if (modoJuego === 'grupal') {
+                    mostrarSelectorDeGrupo();
+                }
+            }
+        })
+        .catch(err => console.warn("Error al unirse a la sala:", err));
+
+        const salirBtn = document.getElementById('salirBtn');
+        salirBtn.addEventListener('click', async () => {
+          const confirmado = await mostrarConfirmacion(
+            "Salir de la sala",
+            "¿Seguro que deseas salir de la sala?"
+          );
+
+          if (!confirmado) return;
+
+          fetch('/salir_sala', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pin: pinSinEspacios,
+              participante_id: participanteId
+            })
+          })
+          .then(() => {
+            window.location.href = "/";
+          })
+          .catch(err => {
+            console.warn("Error al salir de la sala:", err);
+            mostrarMensaje("Error", "No se pudo salir correctamente.");
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 2000); // Espera 2 segundos para que el usuario lea el mensaje
+          });
+        });
+
+
+        function cargarParticipantes() {
+            fetch(`/obtener_participantes?pin=${pinSinEspacios}`)
+            .then(res => res.json())
+            .then(data => {
+                participantes = data.participantes || [];
+                renderParticipants();
+
+                // ✅ Verificar si el juego ha iniciado
+                if (data.estado === 'en_progreso') {
+                    // Usar idCuestionario del servidor (línea 21)
+                    const idCuest = idCuestionario || new URLSearchParams(window.location.search).get('id');
+                    let url = `/jugar?id=${idCuest}&pin=${pinSinEspacios}&modo=${modoJuego}`;
+                    if (modoJuego === 'grupal') {
+                        const params = new URLSearchParams(window.location.search);
+                        url += `&grupos=${params.get('grupos')}&maxIntegrantes=${params.get('maxIntegrantes')}`;
+                    }
+                    window.location.href = url;
+                    return;
+                }
+
+                // ✅ Verificar si el usuario actual sigue en la sala
+                const sigueEnSala = participantes.some(p =>
+                    p.name === nombreCompleto && p.avatar === avatar
+                );
+
+                if (!sigueEnSala) {
+                    mostrarMensaje("Sala cerrada", "Has sido eliminado de la sala.");
+                    setTimeout(() => {
+                        window.location.href = "/inicio_login";
+                    }, 4000);
+                    return;
+                }
+            });
+        }
+
+        cargarParticipantes();
+        setInterval(cargarParticipantes, 3000);
+        // Ocultar controles...
+        if (lockBtn) lockBtn.style.display = 'none';
+        if (startBtn) startBtn.style.display = 'none';
+        if (configBtn) configBtn.style.display = 'none';
+
+        mainAudio.muted = true;
+        updateVolumeIcon();
+        // No renderizamos participantes aquí (solo el anfitrión los gestiona)
+    } else {
+        // === MODO CREADOR (ANFITRIÓN) ===
+        const modoInfo = document.getElementById('modoInfo');
+
+        // Usar el PIN del servidor (ya existe en BD)
+        const formattedPin = pinServidor.replace(/(\d{3})(\d{3})/, '$1 $2');
+        if (pinDisplay) pinDisplay.textContent = formattedPin;
+        if (headerText) headerText.textContent = `Sala de espera: ${cuestionarioTitulo}`;
+
+        // Generar QR con el PIN existente
+        generarQR(pinSinEspacios);
+
+        // Registrar/actualizar sala en memoria
+        //fetch('/registrar_sala', {
+        //    method: 'POST',
+        //    headers: { 'Content-Type': 'application/json' },
+        //    body: JSON.stringify({
+        //        pin: pinSinEspacios,
+        //        modo: modoJuego,
+        //        grupos: numGrupos,
+        //        maxIntegrantes: maxPorGrupo
+        //    })
+        //})
+        //.catch(err => console.warn("No se pudo registrar la sala:", err));
+
+        if (modoInfo) {
+            if (modoJuego === 'grupal') {
+                modoInfo.textContent = `👥 Grupal: ${numGrupos} grupos • Máx. ${maxPorGrupo} por grupo`;
+            } else {
+                modoInfo.textContent = '👤 Modo individual';
+            }
+        }
+
+    // ✅ Definir renderParticipants para anfitrión
+    function renderParticipants() {
+        usersGrid.innerHTML = '';
+
+        if (modoJuego === 'grupal') {
+            // Agrupar participantes
+            const grupos = {};
+            const sinGrupo = [];
+            const totalGrupos = numGrupos || 4;
+
+            for (let i = 1; i <= totalGrupos; i++) {
+                grupos[i] = [];
+            }
+
+            participantes.forEach(p => {
+                if (p.grupo && grupos[p.grupo]) {
+                    grupos[p.grupo].push(p);
+                } else {
+                    sinGrupo.push(p);
+                }
+            });
+
+            // Mostrar sin grupo
+            if (sinGrupo.length > 0) {
+                const sinGrupoDiv = document.createElement('div');
+                sinGrupoDiv.innerHTML = `<h6 class="mt-3">Sin grupo (${sinGrupo.length})</h6>`;
+                usersGrid.appendChild(sinGrupoDiv);
+                sinGrupo.forEach(p => {
+                    const item = crearItemParticipante(p, true);
+                    usersGrid.appendChild(item);
+                });
+            }
+
+            // Mostrar cada grupo
+            for (let i = 1; i <= totalGrupos; i++) {
+                const grupoDiv = document.createElement('div');
+                grupoDiv.innerHTML = `<h6 class="mt-3">Grupo ${i} (${grupos[i].length})</h6>`;
+                usersGrid.appendChild(grupoDiv);
+                grupos[i].forEach(p => {
+                    const item = crearItemParticipante(p, false);
+                    usersGrid.appendChild(item);
+                });
+            }
+        } else {
+            // Modo individual: mostrar todos sin agrupar
+            participantes.forEach((p, index) => {
+                const item = document.createElement('div');
+                item.className = 'avatar-item';
+                item.innerHTML = `
+                    <div class="avatar-img">
+                        <img src="{{ url_for('static', filename='avatars/') }}${p.avatar}"
+                             alt="${p.name}"
+                             onerror="this.src='{{ url_for('static', filename='avatars/oveja.png') }}'">
+                    </div>
+                    <div class="avatar-name">${p.name}</div>
+                `;
+
+                // ✅ Solo añadir el botón si el modo de eliminación está activo
+                if (modoEliminacion) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn btn-sm btn-danger mt-1';
+                    delBtn.textContent = '×';
+                    delBtn.onclick = () => {
+                        fetch('/eliminar_participante', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                pin: pinSinEspacios,
+                                nombre: p.name,
+                                avatar: p.avatar
+                            })
+                        }).then(() => cargarParticipantes());
+                    };
+                    item.appendChild(delBtn);
+                }
+
+                usersGrid.appendChild(item);
+            });
+        }
+
+        document.getElementById('userCount').textContent = participantes.length;
+    }
+
+    // ✅ Función auxiliar para crear ítems (solo en modo grupal)
+    function mostrarInputGrupo(maxGrupos) {
+        return new Promise((resolve) => {
+            // Configurar modal
+            document.getElementById('confirmTitulo').textContent = 'Asignar a grupo';
+            document.getElementById('confirmMensaje').textContent = `Ingresa un número entre 1 y ${maxGrupos}:`;
+
+            // Crear input dinámico
+            let input = document.getElementById('grupoInput');
+            if (!input) {
+                input = document.createElement('input');
+                input.id = 'grupoInput';
+                input.type = 'number';
+                input.min = 1;
+                input.max = maxGrupos;
+                input.placeholder = `1–${maxGrupos}`;
+                input.style.cssText = `
+                    width: 100%;
+                    padding: 8px;
+                    margin: 10px 0;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    text-align: center;
+                    font-family: "Fredoka", sans-serif;
+                `;
+                const buttons = document.querySelector('#confirmModal .modal-buttons');
+                document.querySelector('#confirmModal .modal-box').insertBefore(input, buttons);
+            } else {
+                input.min = 1;
+                input.max = maxGrupos;
+                input.placeholder = `1–${maxGrupos}`;
+                input.value = '';
+            }
+
+            // Mostrar modal
+            document.getElementById('confirmModal').style.display = 'flex';
+
+            // Botones
+            const aceptar = () => {
+                const val = parseInt(input.value);
+                if (val >= 1 && val <= maxGrupos) {
+                    limpiarInput();
+                    resolve(val);
+                } else {
+                    mostrarMensaje("Entrada inválida", `Por favor ingresa un número entre 1 y ${maxGrupos}.`);
+                }
+            };
+
+            const cancelar = () => {
+                limpiarInput();
+                resolve(null);
+            };
+
+            // Limpiar y cerrar
+            function limpiarInput() {
+                if (input.parentNode) input.parentNode.removeChild(input);
+                document.getElementById('confirmModal').style.display = 'none';
+            }
+
+            // Reemplazar listeners para evitar duplicados
+            document.getElementById('confirmAceptar').replaceWith(document.getElementById('confirmAceptar').cloneNode(true));
+            document.getElementById('confirmCancelar').replaceWith(document.getElementById('confirmCancelar').cloneNode(true));
+
+            document.getElementById('confirmAceptar').addEventListener('click', aceptar);
+            document.getElementById('confirmCancelar').addEventListener('click', cancelar);
+
+            // Cerrar al hacer clic fuera
+            document.getElementById('confirmModal').onclick = (e) => {
+                if (e.target.id === 'confirmModal') {
+                    limpiarInput();
+                    resolve(null);
+                }
+            };
+        });
+    }
+
+    function crearItemParticipante(p, esSinGrupo) {
+        const item = document.createElement('div');
+        item.className = 'avatar-item';
+        item.innerHTML = `
+            <div class="avatar-img">
+                <img src="{{ url_for('static', filename='avatars/') }}${p.avatar}" alt="${p.name}">
+            </div>
+            <div class="avatar-name">${p.name}${p.grupo ? ` (G${p.grupo})` : ''}</div>
+        `;
+
+        if (esSinGrupo && modoJuego === 'grupal') {
+            const selectBtn = document.createElement('button');
+            selectBtn.className = 'btn btn-sm btn-outline-secondary mt-1';
+            selectBtn.textContent = 'Asignar';
+            selectBtn.onclick = async () => {
+                const totalGrupos = numGrupos || 4;
+                const num = await mostrarInputGrupo(totalGrupos);
+                if (num !== null) {
+                    fetch('/mover_grupo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pin: pinSinEspacios,
+                            participante_id: p.id,
+                            nuevo_grupo: num
+                        })
+                    }).then(() => cargarParticipantes())
+                      .catch(err => {
+                          console.error("Error al mover de grupo:", err);
+                          mostrarMensaje("Error", "No se pudo asignar al grupo.");
+                      });
+                }
+            };
+            item.appendChild(selectBtn);
+        }
+
+        if (modoEliminacion) {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-sm btn-danger mt-1';
+            delBtn.textContent = '×';
+            delBtn.onclick = () => {
+                fetch('/eliminar_participante', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pin: pinSinEspacios,
+                        nombre: p.name,
+                        avatar: p.avatar
+                    })
+                }).then(() => cargarParticipantes());
+            };
+            item.appendChild(delBtn);
+        }
+        return item;
+    }
+
+    // ✅ Definir cargarParticipantes para anfitrión
+    function cargarParticipantes() {
+        fetch(`/obtener_participantes?pin=${pinSinEspacios}`)
+            .then(res => res.json())
+            .then(data => {
+                participantes = data.participantes || [];
+                renderParticipants();
+            })
+            .catch(err => console.warn("Error al cargar participantes:", err));
+    }
+
+    // Cargar inmediatamente
+    cargarParticipantes();
+    setInterval(cargarParticipantes, 3000);
+
+    // Evento del botón "Empezar"
+    if (startBtn) {
+        startBtn.addEventListener('click', async () => {
+            // Usar idCuestionario del servidor (línea 21)
+            const idCuest = idCuestionario || new URLSearchParams(window.location.search).get('id');
+
+            // Notificar al servidor que el juego está iniciando
+            try {
+                const response = await fetch('/api/iniciar-juego', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pin: pinSinEspacios,
+                        id_cuestionario: idCuest
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Redirigir a la página del juego
+                    let url = `/jugar?id=${idCuest}&pin=${pinSinEspacios}&modo=${modoJuego}`;
+                    if (modoJuego === 'grupal') {
+                        url += `&grupos=${numGrupos}&maxIntegrantes=${maxPorGrupo}`;
+                    }
+                    window.location.href = url;
+                }
+            } catch (error) {
+                console.error('Error al iniciar juego:', error);
+                alert('Error al iniciar el juego');
+            }
+        });
+    }
+
+    mainAudio.muted = true;
+    updateVolumeIcon();
+}
+
+    // --- Event Listeners (solo se aplican si los elementos existen) ---
+
+    if (volumeBtn) {
+        volumeBtn.addEventListener('click', () => {
+            if (mainAudio.paused) {
+                mainAudio.play().catch(err => {
+                    console.warn("No se pudo iniciar el audio:", err);
+                });
+            }
+            mainAudio.muted = !mainAudio.muted;
+            updateVolumeIcon();
+        });
+    }
+
+    if (configBtn && configMenu) {
+        configBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            configMenu.classList.toggle('show');
+        });
+    }
+
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn(`Error al entrar en pantalla completa: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    }
+
+    if (lockBtn && pinSinEspacios) {
+        lockBtn.addEventListener('click', () => {
+            salaAbierta = !salaAbierta;
+
+            if (salaAbierta) {
+                lockIcon.className = 'bi bi-unlock-fill';
+                lockBtn.innerHTML = '<i class="bi bi-unlock-fill"></i> Sala libre';
+                lockBtn.classList.remove('locked');
+            } else {
+                lockIcon.className = 'bi bi-lock-fill';
+                lockBtn.innerHTML = '<i class="bi bi-lock-fill"></i> Sala bloqueada';
+                lockBtn.classList.add('locked');
+            }
+
+        });
+    }
+
+    function mostrarMensaje(titulo, mensaje) {
+        document.getElementById('modalTitulo').textContent = titulo;
+        document.getElementById('modalMensaje').textContent = mensaje;
+        document.getElementById('mensajeModal').style.display = 'flex';
+      }
+
+      // Cerrar modal al hacer clic en "Aceptar"
+      document.getElementById('modalCerrar').addEventListener('click', () => {
+        document.getElementById('mensajeModal').style.display = 'none';
+      });
+
+      // Opcional: cerrar al hacer clic fuera del modal
+      document.getElementById('mensajeModal').addEventListener('click', (e) => {
+        if (e.target.id === 'mensajeModal') {
+          document.getElementById('mensajeModal').style.display = 'none';
+        }
+      });
+
+    function mostrarConfirmacion(titulo, mensaje) {
+      return new Promise((resolve) => {
+        document.getElementById('confirmTitulo').textContent = titulo;
+        document.getElementById('confirmMensaje').textContent = mensaje;
+        document.getElementById('confirmModal').style.display = 'flex';
+
+        const btnAceptar = document.getElementById('confirmAceptar');
+        const btnCancelar = document.getElementById('confirmCancelar');
+
+        // Limpiar listeners anteriores para evitar fugas
+        const cleanup = () => {
+          btnAceptar.removeEventListener('click', onAceptar);
+          btnCancelar.removeEventListener('click', onCancelar);
+          document.getElementById('confirmModal').style.display = 'none';
+        };
+
+        const onAceptar = () => {
+          cleanup();
+          resolve(true);
+        };
+        const onCancelar = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        btnAceptar.addEventListener('click', onAceptar);
+        btnCancelar.addEventListener('click', onCancelar);
+
+      });
+    }
+});
+
+
+</script>
+
+{% endblock %}

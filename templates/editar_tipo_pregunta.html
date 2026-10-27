@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Tipo de Pregunta | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Editar Tipo de Pregunta</h1>
+
+  <div class="form-card">
+    <form action="{{ url_for('actualizar_tipo_pregunta', idTipoPregunta=tipo[0]) }}" method="post" class="form-crud>
+      <label for="nombreTipoPregunta">Nombre del Tipo:</label>
+      <input type="text" id="nombreTipoPregunta" name="nombreTipoPregunta" value="{{ tipo[1] }}" required>
+
+      <button type="submit" class="btn full yellow">Actualizar</button>
+      <a href="{{ url_for('listar_tipos_pregunta') }}" class="btn full white" style="margin-top: 10px;">Cancelar</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Crear Cuestionario - MindGo{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{url_for('static', filename='estilos.css')}}">
+
+<div class="cuestionario-wrap">
+  <!-- PANEL IZQUIERDO -->
+  <aside class="panel-izq">
+    <h3>Preguntas</h3>
+    <ul id="listaPreguntas"></ul>
+    <button id="btnNuevaPregunta" class="btn azul">+ Añadir pregunta</button>
+    <button id="btnPublicar" class="btn publicar">Publicar cuestionario</button>
+  </aside>
+
+  <!-- PANEL CENTRAL -->
+  <main class="panel-central">
+    <div class="pregunta-card">
+      <input id="inputPregunta" class="input-pregunta" placeholder="Escribe la pregunta aquí...">
+
+      <div class="imagen-box" id="imagenBox">
+        <input type="file" id="imagenInput" accept="image/*" hidden>
+        <label for="imagenInput" class="upload-area">Subir imagen</label>
+        <div class="preview-container" id="previewContainer" style="display:none;">
+            <img id="previewImg" class="preview-img">
+            <button id="btnEliminarImagen" class="btn-eliminar-img" title="Eliminar imagen">🗑️</button>
+        </div>
+      </div>
+
+      <div id="respuestasContainer" class="respuestas-grid"></div>
+      <a href="#" id="btnMasRespuestas" class="add-more">+ Añadir respuesta</a>
+
+      <div class="acciones">
+        <button id="btnDuplicar" class="btn azul">Duplicar</button>
+        <button id="btnEliminar" class="btn rosa">Eliminar</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- PANEL DERECHO -->
+  <aside class="panel-der">
+    <h3>Configuración</h3>
+    <label>Tipo de pregunta:</label>
+    <select id="tipoPregunta"></select>
+    <label>Límite de tiempo:</label>
+    <select id="limiteTiempo"></select>
+    <label>Puntuación:</label>
+    <select id="tipoPuntaje"></select>
+    <label>Opción correcta:</label>
+    <select id="opcionCorrecta"></select>
+  </aside>
+</div>
+
+<!-- MODAL -->
+<div id="modalPublicar" class="modal-cuestionario-overlay">
+  <div class="modal-cuestionario">
+    <h2>Publicar Cuestionario</h2>
+    <input id="tituloCuestionario" placeholder="Título del cuestionario">
+    <input id="descripcionCuestionario" placeholder="Descripción (opcional)">
+    <div class="modal-btns">
+      <button class="btn azul" id="btnConfirmarPublicar">Publicar</button>
+      <button class="btn rosa" id="btnCerrarModal">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/crear_cuestionario.js') }}"></script>
+{% endblock %}

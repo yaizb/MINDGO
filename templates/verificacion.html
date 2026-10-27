@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Verifica tu correo | nombrePagina{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+
+<section class="form-section">
+    <div class="form-card centered-card">
+        <div class="check-icon">✓</div>
+        <h2 class="form-title">¡Casi listo!</h2>
+        <p class="confirmation-message">
+            Hemos enviado un mensaje a tu correo electrónico para activar tu cuenta.
+        </p>
+        <p class="hint">
+            Por favor, revisa tu bandeja de entrada (y también la carpeta de spam) y haz clic en el enlace de
+            activación.
+        </p>
+        <div class="extra-links">
+            <a href="{{ url_for('login') }}">← Volver al inicio de sesión</a>
+        </div>
+    </div>
+
+    <p style="margin-top: 20px;">
+        ¿No recibiste el correo de verificación?
+        <a href="{{ url_for('reenviar_verificacion') }}">Reenviar enlace</a>
+    </p>
+</section>
+
+<style>
+    .centered-card {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .check-icon {
+        font-size: 3rem;
+        color: #4CAF50;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+
+    .confirmation-message {
+        font-size: 1.1rem;
+        color: #333;
+        margin: 1rem 0;
+        line-height: 1.5;
+    }
+
+    .hint {
+        font-size: 0.95rem;
+        color: #333;
+        margin-top: 0.5rem;
+    }
+
+    .extra-links a {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: white;
+        text-decoration: none;
+    }
+
+    .extra-links a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+{% endblock %}

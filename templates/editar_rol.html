@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Rol | nombrePagina{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <h1 class="form-title">Editar Rol</h1>
+
+  <div class="form-card">
+    <form action="{{ url_for('actualizar_rol', idRol=rol[0]) }}" method="post" class="form-crud>
+      <label for="nombre">Nombre del Rol:</label>
+      <input type="text" id="nombre" name="nombre" value="{{ rol[1] }}" required>
+
+      <button type="submit" class="btn full yellow">Actualizar</button>
+      <a href="{{ url_for('listar_roles') }}" class="btn full white" style="margin-top: 10px;">Cancelar</a>
+    </form>
+  </div>
+</section>
+{% endblock %}
